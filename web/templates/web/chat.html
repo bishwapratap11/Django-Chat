@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+</head>
+<body>
+    
+    <div class="container">
+        <div class="chat-list-container chat-page">
+            <div class="chat-header">
+                <span class="chats">Chats</span>
+                <span class="chats-action">
+                    <img src="{% static 'web/images/icons/more-vertical.svg' %}" alt="">
+                    <div class="menu-chat-action">
+                        <ul>
+                            <li><a href="#">Add Contact</a></li>
+                            <li><a href="#">New Group</a></li>
+                            <li><a href="#">Settings</a></li>
+                            <li><a href="#">Logout</a></li>
+                        </ul>
+                    </div>
+                </span>
+            </div>
+            <div class="list-search-chat">
+                <div class="search-input">
+                    <input type="text" id="search-chat-member" autocomplete="off" placeholder="Search Users">
+                </div>
+            </div>
+            <div class="recent-msg">
+                <span>Recent</span>
+            </div>
+            
+            <div class="contact-list">
+                {% for user in users %}
+                    <a href="{% url 'chat' user.username %}">
+                        <div class="single-contact-chat">
+                            <div class="avatar">
+                                <img src="{% static 'web/images/profiles/1.jpg' %}" alt="">
+                            </div>
+                            <div class="avatar-name">{{user.username}}</div>
+                            <div class="avatar-last-msg">Maya</div>
+                        </div>
+                    </a>
+                {% endfor %}
+                
+            </div>
+        </div>
+        <div class="chat-container">
+            <div class="chat-container-header">
+                <span>
+                    <table class="adjust-img-name">
+                        <tr>
+                            <td>
+                                <img src="{% static 'web/images/profiles/1.jpg' %}" alt="" class="chat-container-header-img">
+                            </td>
+                            <td>{{get_user.username}}</td>
+                        </tr>
+                    </table>
+                </span>
+                <span>
+                    <img src="{% static 'web/images/icons/more-vertical.svg' %}" alt="">
+                </span>
+            </div>
+            <div class="all-chat-container">
+                {% for msg in message  %}
+                    {% if msg.sender == request.user.username %}
+                        <div class="single-msg-chat receiver">
+                            <div class="single-msg-avatar">
+                                <img src="{% static 'web/images/profiles/1.jpg' %}" alt="">
+                            </div>
+                            <div class="single-msg-original-msg">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam minus cumque veniam esse 
+                                labore debitis eius saepe nam.Ullam nostrum ad saepe voluptas maxime repudiandae 
+                                magnam nesciunt possimus. Optio, accusamus!
+                                <span class="single-msg-timing">4:45 AM</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="single-msg-chat sender">
+                            <div class="single-msg-original-msg">
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam minus cumque veniam esse 
+                                labore debitis eius saepe nam.Ullam nostrum ad saepe voluptas maxime repudiandae 
+                                magnam nesciunt possimus. Optio, accusamus!
+                                <span class="single-msg-timing">4:45 AM</span>
+                            </div>
+                            <div class="single-msg-avatar">
+                                <img src="{% static 'web/images/profiles/1.jpg' %}" alt="">
+                            </div>
+                            
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                
+            </div>
+            <div class="chat-container-form">
+                <form id="form">
+                    <input type="text" id="form_msg" placeholder="Type something here" autocomplete="off">
+                </form>
+                <img src="{% static 'web/images/icons/smile.svg' %}" alt="" id="emoji">
+            </div>
+        </div>
+    </div>
+    <script src="https://kit.fontawesome.com/9a34ebdf15.js" crossorigin="anonymous"></script>
+    <script src="{% static 'web/js/main.js' %}"></script>
+</body>
+</html>
+
+<script>
+    var receiver_id = '{{get_user.id}}';
+    var sender = '{{request.user.username}}'
+    console.log(sender, receiver_id);
+    var socket = new WebSocket('ws://'
+        + window.location.host
+        +'/ws/'
+        + receiver_id
+        + '/'
+    );
+    console.log(socket.url);
+
+    socket.onopen = function() {
+    console.log('Connection Established');
+  }
+
+  socket.onclose = function() {
+    console.log("Connection Lost");
+  }
+
+  socket.onerror = function(e) {
+    console.log('Connection Error', e);
+  }
+
+    socket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        {% comment %} console.log(data.message); {% endcomment %}
+        var mainDiv = document.querySelector('.all-chat-container');
+        if(data.sender == sender){
+            mainDiv.innerHTML += `
+            <div class="single-msg-chat sender">
+                            <div class="single-msg-original-msg">
+                                ${data.message}
+                                <span class="single-msg-timing">4:45 AM</span>
+                            </div>
+                            <div class="single-msg-avatar">
+                                <img src="{% static 'web/images/profiles/1.jpg' %}" alt="">
+                            </div>
+                            
+                        </div>`;
+        }
+        else{
+            mainDiv.innerHTML += `
+            <div class="single-msg-chat receiver">
+                            <div class="single-msg-avatar">
+                                <img src="{% static 'web/images/profiles/1.jpg' %}" alt="">
+                            </div>
+                            <div class="single-msg-original-msg">
+                                ${data.sender}
+                                <span class="single-msg-timing">4:45 AM</span>
+                            </div>
+                        </div>
+            `;
+        }
+    }
+
+
+    document.querySelector('#form').onsubmit = function(e) {
+        e.preventDefault();
+        var message = document.querySelector('#form_msg').value;
+        socket.send(JSON.stringify({
+            'message': message,
+            'username': sender,
+        }))
+        message.value = '';
+    }
+    
+    var scroolDown = document.querySelector('.all-chat-container');
+    var temp = scroolDown.scrollHeight;
+    console.log(temp);
+    scroolDown.scrollTop = temp;
+</script>
