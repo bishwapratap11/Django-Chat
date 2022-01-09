@@ -1,4 +1,5 @@
-![ezgif-5-9357432faf](https://user-images.githubusercontent.com/79249157/148678956-9b064d0c-bb08-4a7b-a845-e529aad59d78.gif)
+![ezgif-5-d42921bcc8](https://user-images.githubusercontent.com/79249157/148679413-187c9cd2-bd12-431b-ab19-f6a8bb275a0e.gif)
+
 # Django-Chat
 
 This is an Asynchronous Chat Application created on django.
